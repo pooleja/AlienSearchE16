@@ -51,7 +51,7 @@ def measurement():
     requestedFile = request.args.get('file')
     filePath = os.path.join(dataDir, requestedFile)
 
-    if !os.path.isfile(filePath):
+    if os.path.isfile(filePath) != True :
         return 'HTTP Status 404: Requested file not found', 404
 
     return send_from_directory(dataDir, requestedFile)
