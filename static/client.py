@@ -10,7 +10,7 @@ from two1.bitrequests import BitRequestsError
 requests = BitTransferRequests(Wallet(), config.Config().username)
 
 
-url = "http://0.0.0.0:8016/download/test1234"
+url = "http://0.0.0.0:8016/download?file=test1234"
 
 mb = 1024 * 1024
 
@@ -29,7 +29,7 @@ try:
 
     print('Buy call succeeded.')
     print('Digest: ' + digest)
-    print('Speed: ' + mpbs + ' Mbps')
+    print('Speed: ' + str(mpbs) + ' Mbps')
 
 except Exception as err:
     print('Buy call failed')
