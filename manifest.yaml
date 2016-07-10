@@ -1,22 +1,14 @@
 basePath: /
 definitions:
-  Server:
-    properties:
-      city: {type: string}
-      provider: {type: string}
-      public_ip: {type: string}
-      state: {type: string}
-      zip_code: {type: string}
-    type: object
-host: 10.244.79.96:7016
+host: 10.244.79.96:8016
 info:
   contact: {email: james@microtrx.com, name: eSixteen.co }
-  description: Get machine stats on demand for bitcoin.
-  title: StatsE16
+  description: Get machine upload/download stats on demand for bitcoin.
+  title: SpeedE16
   x-21-category: utilities
-  x-21-github-project-url: https://github.com/pooleja/StatsE16
-  x-21-keywords: [stats, location, ram, cpu, disk, iot, sensor]
-  x-21-quick-buy: "$ 21 buy http://10.244.79.96:7016/"
+  x-21-github-project-url: https://github.com/pooleja/SpeedE16
+  x-21-keywords: [stats, speed, upload, download, test, iot, sensor]
+  x-21-quick-buy: "$ 21 buy http://10.244.79.96:8016/"
   x-21-total-price: {max: 5, min: 5}
 paths:
   /:
