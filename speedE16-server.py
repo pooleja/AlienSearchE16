@@ -15,8 +15,6 @@ from flask import request
 from two1.wallet.two1_wallet import Wallet
 from two1.bitserv.flask import Payment
 
-from statsE16 import statsE16
-
 app = Flask(__name__)
 
 # setup wallet
