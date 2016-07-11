@@ -39,7 +39,7 @@ try:
     # Upload the file and time it
     with open(fullFilePath, 'rb') as f:
         startTime = time.time()
-        r = requests.post(uploadUrl, files={filename: f}, max_price=5)
+        r = requests.post(uploadUrl, files={ 'file': (filename, f)}, max_price=5)
         endTime = time.time()
         uploadElapsedTime = endTime - startTime
 
@@ -50,7 +50,7 @@ try:
 
     print("Deleted the temp file")
     print("Result from upload: " + r.text)
-    
+
 
     # Verify the upload was successful
     if r.json()['success'] != True :
