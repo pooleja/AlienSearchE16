@@ -59,7 +59,7 @@ def upload():
     delete_before_time = time.time() - (60 * 60)
     files = glob.glob(os.path.join(dataDir, "*"))
     for file in files:
-        if file.endswith(".md") != True :
+        if file.endswith(".md") != True and os.path.isfile(file) == True :
             if os.path.getmtime(file) < delete_before_time :
                 print("Removing old file: " + file)
                 os.remove(file)
