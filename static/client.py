@@ -2,6 +2,9 @@
 
 import hashlib
 import time
+import os
+import random
+import string
 
 from two1.commands.util import config
 from two1.wallet import Wallet
@@ -16,7 +19,7 @@ uploadUrl = baseUrl + '/upload'
 mb = 1024 * 1024
 
 try:
-    print("Testing upload and download speed against: " + baserUrl)
+    print("Testing upload and download speed against: " + baseUrl)
 
     # Generate a 1 MB file with random data in it with a random name
     dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
@@ -40,12 +43,14 @@ try:
         endTime = time.time()
         uploadElapsedTime = endTime - startTime
 
-    print("Uploaded the file.  Elapsed time: " + uploadElapsedTime)
+    print("Uploaded the file.  Elapsed time: " + str(uploadElapsedTime))
 
     # Delete the file
     os.remove(fullFilePath)
 
     print("Deleted the temp file")
+    print("Result from upload: " + r.text)
+    
 
     # Verify the upload was successful
     if r.json()['success'] != True :
@@ -69,17 +74,16 @@ try:
         print("Error: File digests to not match.")
         print("Before Digest: " + beforeDigest)
         print("After Digest: " + afterDigest)
-        return
 
     print("Verified the sha256 hashes match.")
 
     # Calculate Mbps - assume 1 MB file
-    uploadMbps = 8 / downloadMpbs = 8 / downloadElapsedTime
+    uploadMbps = 8 / downloadElapsedTime
     downloadMpbs = 8 / downloadElapsedTime
 
     print('Upload Speed: ' + str(uploadMbps) + ' Mbps')
     print('Download Speed: ' + str(downloadMpbs) + ' Mbps')
 
 except Exception as err:
-    print('Buy call failed')
+    print('Client test failed')
     print("Failure: {0}".format(err))
