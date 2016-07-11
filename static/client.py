@@ -44,35 +44,44 @@ try:
         uploadElapsedTime = endTime - startTime
 
     print("Uploaded the file.  Elapsed time: " + str(uploadElapsedTime))
-
-    # Delete the file
-    os.remove(fullFilePath)
-
-    print("Deleted the temp file")
     print("Result from upload: " + r.text)
 
+    # Delete the file uploaded file
+    os.remove(fullFilePath)
+    print("Deleted the temp uploaded file")
 
     # Verify the upload was successful
     if r.json()['success'] != True :
         print("Upload Failed: " + r.text)
 
     print("Upload shows success")
-    
+
     # Get the download url to use from the upload request
     downloadFileName = r.json()['filename']
     downloadUrl = baseDownloadUrl + downloadFileName
     print("Download URL: " + downloadUrl)
 
     # Download the file and time it
+    downloadFilePath = os.path.join(dataDir, downloadFileName)
     startTime = time.time()
-    content = requests.get(downloadUrl, max_price=5).content
+    r = requests.get(downloadUrl, max_price=5)
+    with open(downloadFilePath, 'wb') as fd:
+        for chunk in r.iter_content(chunk_size):
+            fd.write(chunk)
     endTime = time.time()
     downloadElapsedTime = endTime - startTime
 
     print("Downloaded the file.  Elapsed Time: " + str(downloadElapsedTime))
 
-    # Verify sha256 hashes match
-    afterDigest = hashlib.sha256(content).hexdigest()
+    # Get the downloaded file Hash
+    with open(downloadFilePath, 'rb') as afile:
+        afterDigest = hashlib.sha256(afile.read()).hexdigest()
+
+    # Delete the file downloaded file
+    os.remove(downloadFilePath)
+    print("Deleted the temp downloaded file")
+
+    # Compare the hashes to make sure no funny business happened
     if beforeDigest != afterDigest:
         print("Error: File digests to not match.")
         print("Before Digest: " + beforeDigest)
