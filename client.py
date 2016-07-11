@@ -5,7 +5,7 @@ import time
 import os
 import random
 import string
-from .speedE16 import SpeedE16
+from speedE16 import SpeedE16
 
 from two1.commands.util import config
 from two1.wallet import Wallet
@@ -14,14 +14,14 @@ from two1.bitrequests import BitRequestsError
 requests = BitTransferRequests(Wallet(), config.Config().username)
 
 mb = 1024 * 1024
-chunk_size = 1024
 
 try:
-    print("Testing upload and download speed against: " + baseUrl)
-
-    # Create the speed testing client
+    
+    # Figure out the base paths
     dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
     baseUrl = 'http://0.0.0.0:8016'
+
+    # Create the speed testing client
     speed = SpeedE16(dataDir, baseUrl)
 
     # Generate a 1 MB file with random data in it with a random name
@@ -39,13 +39,13 @@ try:
     print("Deleted the temp uploaded file: " + fullFilePath)
 
     # If the upload succeeded, now test download
-    if uploadData.success == True:
+    if uploadData['success'] == True:
 
         print("Upload shows success")
 
         downloadData = speed.download(requests, uploadData['upload_filename'])
 
-        if downloadData.success == True:
+        if downloadData['success'] == True:
 
             print("Download shows success")
 
@@ -54,14 +54,14 @@ try:
             print("Deleted the temp downloaded file: " + fullFilePath)
 
             # Compare the hashes to make sure no funny business happened
-            if uploadData.digest != downloadData.digest1:
+            if uploadData['digest'] != downloadData['digest']:
                 print("Error: File digests to not match.")
-                print("Uploaded File Digest: " + uploadData.digest)
-                print("Downloaded File Digest: " + downloadData.digest1)
+                print("Uploaded File Digest: " + uploadData['digest'])
+                print("Downloaded File Digest: " + downloadData['digest'])
 
             # Calculate Mbps - assume 1 MB file
-            uploadMbps = 8 / uploadData.time
-            downloadMpbs = 8 / downloadData.time
+            uploadMbps = 8 / uploadData['time']
+            downloadMpbs = 8 / downloadData['time']
 
             print('Upload Speed: ' + str(uploadMbps) + ' Mbps')
             print('Download Speed: ' + str(downloadMpbs) + ' Mbps')

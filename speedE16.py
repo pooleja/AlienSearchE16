@@ -2,6 +2,8 @@ import hashlib
 import time
 import os
 
+chunk_size = 1024
+
 class SpeedE16:
 
     def __init__(self, data_dir, base_url):
@@ -13,7 +15,7 @@ class SpeedE16:
 
         # Set the source and dest paths
         dest_url = self.base_url + '/upload'
-        source_path = os.path.join(self.data_dir, downloadFileName)
+        source_path = os.path.join(self.data_dir, file)
 
         # Get the sha256 hash of the file
         with open(source_path, 'rb') as afile:
@@ -22,18 +24,14 @@ class SpeedE16:
         print("Generated a hash of the temp file: " + beforeDigest)
 
         # Upload the file and time it
-        with open(fullFilePath, 'rb') as f:
+        with open(source_path, 'rb') as f:
             startTime = time.time()
-            r = requests.post(uploadUrl, files={ 'file': (filename, f)}, max_price=5)
+            r = requests.post(dest_url, files={ 'file': (file, f)}, max_price=5)
             endTime = time.time()
             uploadElapsedTime = endTime - startTime
 
         print("Uploaded the file.  Elapsed time: " + str(uploadElapsedTime))
         print("Result from upload: " + r.text)
-
-        # Delete the file uploaded file
-        os.remove(fullFilePath)
-        print("Deleted the temp uploaded file")
 
         # Verify the upload was successful
         if r.json()['success'] != True :
@@ -53,8 +51,8 @@ class SpeedE16:
 
         # Set the source and dest paths
         source_url = self.base_url + '/download?file=' + file
-        dest_path = os.path.join(self.data_dir, downloadFileName)
-        print("Downloading: " + source_url " to: " + dest_path)
+        dest_path = os.path.join(self.data_dir, file)
+        print("Downloading: " + source_url + " to: " + dest_path)
 
         startTime = time.time()
         r = requests.get(source_url, max_price=5)

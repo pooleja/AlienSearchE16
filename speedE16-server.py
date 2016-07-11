@@ -96,7 +96,7 @@ def download():
 
 @app.route('/query-remote')
 @payment.required(10)
-def download():
+def query():
     """ Downloads a file from a remote server and responds back with stats and sha256 of downloaded file.
         Payment required is 10 satoshis since it will cost 5 satoshis to download from the remote host
 
