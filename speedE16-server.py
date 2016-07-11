@@ -10,6 +10,8 @@ import yaml
 import ipaddress
 import string
 import random
+import glob
+import time
 
 from flask import Flask
 from flask import request
@@ -45,7 +47,15 @@ def manifest():
 @payment.required(5)
 def upload():
     print("Upload requested:")
-    print(request.files)
+
+    # First, clear out any old uploaded files that are older than an hour
+    delete_before_time = time.time() - (60 * 60)
+    files = glob.glob(os.path.join(dataDir, "*"))
+    for file in files:
+        if file.endswith(".md") != True :
+            if os.path.getmtime(file) < delete_before_time :
+                os.remove(file)
+
 
     # check if the post request has the file part
     if 'file' not in request.files:
