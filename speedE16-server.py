@@ -15,6 +15,7 @@ import time
 
 from flask import Flask
 from flask import request
+from flask import send_from_directory
 
 from two1.wallet.two1_wallet import Wallet
 from two1.bitserv.flask import Payment
