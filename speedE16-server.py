@@ -44,6 +44,9 @@ def manifest():
 @app.route('/upload', methods=['POST'])
 @payment.required(5)
 def upload():
+    print("Upload requested:")
+    print(request.files)
+
     # check if the post request has the file part
     if 'file' not in request.files:
         return 'File Upload arg not found', 400

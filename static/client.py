@@ -56,9 +56,12 @@ try:
     if r.json()['success'] != True :
         print("Upload Failed: " + r.text)
 
+    print("Upload shows success")
+    
     # Get the download url to use from the upload request
     downloadFileName = r.json()['filename']
     downloadUrl = baseDownloadUrl + downloadFileName
+    print("Download URL: " + downloadUrl)
 
     # Download the file and time it
     startTime = time.time()
@@ -66,7 +69,7 @@ try:
     endTime = time.time()
     downloadElapsedTime = endTime - startTime
 
-    print("Downloaded the file.  Elapsed Time: " + downloadElapsedTime)
+    print("Downloaded the file.  Elapsed Time: " + str(downloadElapsedTime))
 
     # Verify sha256 hashes match
     afterDigest = hashlib.sha256(content).hexdigest()
