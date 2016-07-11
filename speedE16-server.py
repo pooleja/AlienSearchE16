@@ -46,7 +46,7 @@ def manifest():
 @app.route('/upload', methods=['POST'])
 @payment.required(5)
 def upload():
-    print("Upload requested:")
+    print("Upload requested.")
 
     # First, clear out any old uploaded files that are older than an hour
     delete_before_time = time.time() - (60 * 60)
@@ -54,6 +54,7 @@ def upload():
     for file in files:
         if file.endswith(".md") != True :
             if os.path.getmtime(file) < delete_before_time :
+                print("Removing old file: " + file)
                 os.remove(file)
 
 
@@ -89,6 +90,23 @@ def download():
 
     if os.path.isfile(filePath) != True :
         return 'HTTP Status 404: Requested file not found', 404
+
+    return send_from_directory(dataDir, requestedFile)
+
+
+@app.route('/query-remote')
+@payment.required(10)
+def download():
+    """ Downloads a file from a remote server and responds back with stats and sha256 of downloaded file.
+        Payment required is 10 satoshis since it will cost 5 satoshis to download from the remote host
+
+    Returns: HTTPResponse 200 the file payload is invalid.
+    HTTP Response 404 if the file is not found.
+    """
+
+    # Build the path to the file from the current dir + data dir + requested file name
+    requestedFile = request.args.get('file')
+    requestedHost = request.args.get('host')
 
     return send_from_directory(dataDir, requestedFile)
 
