@@ -25,7 +25,7 @@ def outputResult(file, result):
         f.write(json.dumps(result, indent=4, sort_keys=True))
 
 
-def testClientServer(clientHost, serverHost, output)
+def testClientServer(clientHost, serverHost, output):
     try:
 
         # Figure out the base paths
