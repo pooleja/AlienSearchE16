@@ -17,6 +17,7 @@ baseDownloadUrl = baseUrl + '/download?file='
 uploadUrl = baseUrl + '/upload'
 
 mb = 1024 * 1024
+chunk_size = 1024
 
 try:
     print("Testing upload and download speed against: " + baseUrl)
