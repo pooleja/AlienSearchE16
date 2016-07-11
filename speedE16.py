@@ -84,8 +84,8 @@ class SpeedE16:
 
         print("Making remote request: " + remote_url)
 
-        r = requests.get(remote_url, max_price=5)
+        r = requests.get(remote_url, max_price=10)
 
         print("Remote request completed.")
-        
+
         return r.json()

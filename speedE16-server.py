@@ -129,7 +129,7 @@ def remote():
 
         # Delete the file downloaded file since we don't need it anymore
         os.remove(downloadData['download_path'])
-        print("Deleted the temp downloaded file: " + fullFilePath)
+        print("Deleted the temp downloaded file: " + downloadData['download_path'])
 
     return downloadData
 
