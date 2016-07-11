@@ -32,7 +32,7 @@ payment = Payment(app, wallet)
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
+dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'server-data')
 
 @app.route('/manifest')
 def manifest():

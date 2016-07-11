@@ -16,9 +16,9 @@ requests = BitTransferRequests(Wallet(), config.Config().username)
 mb = 1024 * 1024
 
 try:
-    
+
     # Figure out the base paths
-    dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
+    dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'client-data')
     baseUrl = 'http://0.0.0.0:8016'
 
     # Create the speed testing client
