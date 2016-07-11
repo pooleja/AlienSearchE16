@@ -131,7 +131,7 @@ def remote():
         os.remove(downloadData['download_path'])
         print("Deleted the temp downloaded file: " + downloadData['download_path'])
 
-    return downloadData
+    return json.dumps(downloadData, indent=4, sort_keys=True)
 
 
 if __name__ == '__main__':
