@@ -17,8 +17,14 @@ from flask import Flask
 from flask import request
 from flask import send_from_directory
 
+from two1.commands.util import config
 from two1.wallet.two1_wallet import Wallet
 from two1.bitserv.flask import Payment
+from two1.bitrequests import BitTransferRequests
+from two1.bitrequests import BitRequestsError
+requests = BitTransferRequests(Wallet(), config.Config().username)
+
+from speedE16 import SpeedE16
 
 app = Flask(__name__)
 
@@ -95,9 +101,9 @@ def download():
     return send_from_directory(dataDir, requestedFile)
 
 
-@app.route('/query-remote')
+@app.route('/remote')
 @payment.required(10)
-def query():
+def remote():
     """ Downloads a file from a remote server and responds back with stats and sha256 of downloaded file.
         Payment required is 10 satoshis since it will cost 5 satoshis to download from the remote host
 
@@ -109,7 +115,23 @@ def query():
     requestedFile = request.args.get('file')
     requestedHost = request.args.get('host')
 
-    return send_from_directory(dataDir, requestedFile)
+    print("Requesting file: " + requestedFile + " from host: " + requestedHost)
+
+    # Create the speed testing client
+    remoteBaseUrl = os.path.join(dataDir, "remote")
+    speed = SpeedE16(remoteBaseUrl, "http://" + requestedHost + ":8016")
+
+    downloadData = speed.download(requests, requestedFile)
+
+    if downloadData['success'] == True:
+
+        print("Download shows success")
+
+        # Delete the file downloaded file since we don't need it anymore
+        os.remove(downloadData['download_path'])
+        print("Deleted the temp downloaded file: " + fullFilePath)
+
+    return downloadData
 
 
 if __name__ == '__main__':

@@ -76,3 +76,16 @@ class SpeedE16:
         }
 
         return retVal
+
+    def remote(self, requests, file, remoteHost):
+
+        # Set the source and dest paths
+        remote_url = self.base_url + '/remote?file=' + file + "&host=" + remoteHost
+
+        print("Making remote request: " + remote_url)
+
+        r = requests.get(remote_url, max_price=5)
+
+        print("Remote request completed.")
+        
+        return r.json()
