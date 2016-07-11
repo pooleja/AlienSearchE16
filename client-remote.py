@@ -18,7 +18,7 @@ mb = 1024 * 1024
 
 def outputResult(file, result):
 
-    if(os.path.exists(file))
+    if os.path.exists(file):
         os.remove(file)
 
     with open(file, 'wb') as f:
