@@ -91,6 +91,8 @@ def download():
     HTTP Response 404 if the file is not found.
     """
 
+    print("Download requested.")
+
     # Build the path to the file from the current dir + data dir + requested file name
     requestedFile = request.args.get('file')
     filePath = os.path.join(dataDir, requestedFile)
@@ -110,6 +112,8 @@ def remote():
     Returns: HTTPResponse 200 the file payload is invalid.
     HTTP Response 404 if the file is not found.
     """
+
+    print("Remote query requested.")
 
     # Build the path to the file from the current dir + data dir + requested file name
     requestedFile = request.args.get('file')

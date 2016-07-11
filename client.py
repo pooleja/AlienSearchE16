@@ -14,7 +14,7 @@ from two1.bitrequests import BitRequestsError
 requests = BitTransferRequests(Wallet(), config.Config().username)
 
 mb = 1024 * 1024
-def testClient(target)
+def testClient(target):
     try:
 
         # Figure out the base paths
@@ -80,6 +80,8 @@ if __name__ == '__main__':
     @click.command()
     @click.option("-t", "--target", default="0.0.0.0", help="Target host to run against.")
     def run(target):
+
+        print("Running upload/download test against: " + target)
         testClient(target)
 
     run()
