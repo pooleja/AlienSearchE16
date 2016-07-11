@@ -7,6 +7,7 @@ import os.path
 import random
 import string
 from speedE16 import SpeedE16
+import json
 
 from two1.commands.util import config
 from two1.wallet import Wallet
