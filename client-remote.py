@@ -57,7 +57,7 @@ def testClientServer(clientHost, serverHost, output):
 
             print("Upload shows success")
 
-            downloadData = clientSpeed.remote(requests, uploadData['upload_filename'], '10.244.119.122')
+            downloadData = clientSpeed.remote(requests, uploadData['upload_filename'], serverHost)
 
             if downloadData['success'] == True:
 
