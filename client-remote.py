@@ -22,7 +22,7 @@ def outputResult(file, result):
     if os.path.exists(file):
         os.remove(file)
 
-    with open(file, 'wb') as f:
+    with open(file, 'w') as f:
         f.write(json.dumps(result, indent=4, sort_keys=True))
 
 
