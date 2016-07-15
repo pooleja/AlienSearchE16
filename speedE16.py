@@ -26,7 +26,7 @@ class SpeedE16:
         # Upload the file and time it
         with open(source_path, 'rb') as f:
             startTime = time.time()
-            r = requests.post(dest_url, files={ 'file': (file, f)}, max_price=5)
+            r = requests.post(dest_url, files={ 'file': (source_path)}, max_price=5)
             endTime = time.time()
             uploadElapsedTime = endTime - startTime
 
