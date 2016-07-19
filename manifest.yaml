@@ -1,23 +1,22 @@
 basePath: /
 definitions:
-host: 10.244.79.96:8016
+host: 10.244.79.96:9016
 info:
-  contact: {email: james@microtrx.com, name: eSixteen.co }
-  description: Get machine upload/download stats on demand for bitcoin.
-  title: SpeedE16
+  contact: {email: james@esixteen.com, name: eSixteen.co }
+  description: Earn bitcoin by transcoding video.
+  title: TranscodeE16
   x-21-category: utilities
-  x-21-github-project-url: https://github.com/pooleja/SpeedE16
-  x-21-keywords: [stats, speed, upload, download, test, iot, sensor]
-  x-21-quick-buy: "$ 21 buy http://10.244.79.96:8016/"
-  x-21-total-price: {max: 5, min: 5}
+  x-21-github-project-url: https://github.com/pooleja/TranscodeE16
+  x-21-keywords: [stats, speed, video, transcode, download, test, iot, sensor]
+  x-21-quick-buy: "$ 21 buy http://10.244.79.96:9016/"
 paths:
-  /:
+  /price:
     get:
       consumes: [application/x-www-form-urlencoded]
       produces: [application/json]
       responses:
         200:
-          description: Stats for the location and hardware of the server.
+          description: Price for transcoding specified video
           schema:
             properties:
               server: {$ref: '#/definitions/Server'}
