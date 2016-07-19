@@ -125,7 +125,7 @@ class TranscodeE16:
                         "-vf",
                         "scale=1024:768",
                         "-strict",
-                        "-2"
+                        "-2",
                         "-profile:v",
                         "baseline",
                         targetFile
