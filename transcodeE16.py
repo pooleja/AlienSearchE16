@@ -45,7 +45,14 @@ class TranscodeE16:
             return 0
 
 
-    def processFile(self, sourceUrl, targetFileName):
-        print("Job has started for {} and targeted to {}".format(sourceUrl, targetFileName))
+    def processFile(self, sourceUrl, jobId):
+        log.info(("Job has started for {} and jobId {}".format(sourceUrl, jobId))
 
+        # Transcode the file
+        targetFile = os.path.join(self.data_dir, jobId + ".mp4")
+        try:
+            subprocess.check_call(["ffmpeg", "-i", sourceUrl, "-c:v", "libx264", "-profile:v", "baseline", targetFile])
+        except CalledProcessError as err:
+            log.error("Failed to transcode video: {}".format(err))
+            return
         

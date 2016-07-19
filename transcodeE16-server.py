@@ -104,18 +104,18 @@ def transcode():
     requestedFile = request.args.get('url')
 
     # Generate a random file name for the output of the transcoding job
-    targetFileName = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20))
+    jobId = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20))
 
     # In the background kick off the download and transcoding
     transcoder = TranscodeE16(dataDir)
     threading.Thread(target=transcoder.processFile,
-        args=(requestedFile, targetFileName)
-    ).start()    
+        args=(requestedFile, jobId)
+    ).start()
 
     # Return success of started job and the ID to use to query status
     return json.dumps({
         "success": True,
-        "jobId" : targetFileName,
+        "jobId" : jobId,
         "message" : "Transcoding job has started."
     })
 
