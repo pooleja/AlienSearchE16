@@ -5,6 +5,7 @@ import logging
 import re
 import os
 import time
+import _thread
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.INFO)
@@ -113,7 +114,7 @@ class TranscodeE16:
 
                 # Trigger new thread to monitor status
                 self.jobRunning = True
-                self.monitorStatus(outputFile, videoDuration)
+                _thread.start_new_thread(self.monitorStatus, (outputFile, videoDuration))
 
                 subprocess.check_call([
                         "avconv",
