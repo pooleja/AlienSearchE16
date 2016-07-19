@@ -1,6 +1,7 @@
 import subprocess
 import logging
 import re
+import os
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.INFO)
@@ -50,9 +51,9 @@ class TranscodeE16:
 
         # Transcode the file
         targetFile = os.path.join(self.data_dir, jobId + ".mp4")
+
         try:
             subprocess.check_call(["ffmpeg", "-i", sourceUrl, "-c:v", "libx264", "-profile:v", "baseline", targetFile])
         except CalledProcessError as err:
             log.error("Failed to transcode video: {}".format(err))
             return
-        
