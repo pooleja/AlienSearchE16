@@ -43,3 +43,9 @@ class TranscodeE16:
         else:
             log.info("Failed to match regex for Duration")
             return 0
+
+
+    def processFile(self, sourceUrl, targetFileName):
+        print("Job has started for {} and targeted to {}".format(sourceUrl, targetFileName))
+
+        

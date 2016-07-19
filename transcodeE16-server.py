@@ -12,6 +12,7 @@ import string
 import random
 import glob
 import time
+from thread import start_new_thread
 
 from flask import Flask
 from flask import request
@@ -60,15 +61,9 @@ def price():
     HTTP Response 500 if an error is encountered.
     """
 
-    # Get the URL to the file being requested
-    requestedFile = request.args.get('url')
-
-    log.info("Price info requested for URL: {}.".format(requestedFile))
-
     try:
-        # Create the transcoding helper class
-        transcoder = TranscodeE16(dataDir)
-        duration = transcoder.getDuration(requestedFile)
+
+        duration = get_video_duration(request)
 
         # An error occurred if we could not get a valid duration
         if duration == 0:
@@ -76,6 +71,7 @@ def price():
             return json.dumps({ "success": False, "error": "Failure: Could not determine the length of the video file"}), 500
 
         log.info("Duration query of video completed with duration: {}", duration)
+
         return json.dumps({
             "success": True,
             "price": duration * SATOSHI_PER_MIN_PRICE,
@@ -86,6 +82,56 @@ def price():
     except Exception as err:
         log.warning("Failure: {0}".format(err))
         return json.dumps({ "success": False, "error": "Error: {0}".format(err) }), 404
+
+
+
+@app.route('/transcode')
+@payment.required(get_transcode_price)
+def transcode():
+    """ Transcodes the video specified in 'url' query param
+
+    Returns: HTTPResponse 200 with the details about price.
+    HTTP Response 404 if the file is not found.
+    HTTP Response 500 if an error is encountered.
+    """
+
+    # Get the URL to the file being requested
+    requestedFile = request.args.get('url')
+
+    # Generate a random file name for the output of the transcoding job
+    targetFileName = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20))
+
+    # In the background kick off the download and transcoding
+    transcoder = TranscodeE16(dataDir)
+    start_new_thread(transcoder.processFile, (requestedFile, targetFileName,))
+
+    # Return success of started job and the ID to use to query status
+    return json.dumps({
+        "success": True,
+        "jobId" : targetFileName,
+        "message" : "Transcoding job has started."
+    })
+
+def get_video_duration(request):
+
+    # Get the URL to the file being requested
+    requestedFile = request.args.get('url')
+
+    log.info("Getting duration requested for URL: {}.".format(requestedFile))
+
+    # Create the transcoding helper class
+    transcoder = TranscodeE16(dataDir)
+    duration = transcoder.getDuration(requestedFile)
+
+    log.info("Duration query of video completed with duration: {}", duration)
+    return duration
+
+
+def get_transcode_price(request):
+
+    duration = get_video_duration(request)
+
+    return duration * SATOSHI_PER_MIN_PRICE
 
 
 
