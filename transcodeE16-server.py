@@ -12,7 +12,7 @@ import string
 import random
 import glob
 import time
-from thread import start_new_thread
+import threading
 
 from flask import Flask
 from flask import request
@@ -83,6 +83,11 @@ def price():
         log.warning("Failure: {0}".format(err))
         return json.dumps({ "success": False, "error": "Error: {0}".format(err) }), 404
 
+def get_transcode_price(request):
+
+    duration = get_video_duration(request)
+
+    return duration * SATOSHI_PER_MIN_PRICE
 
 
 @app.route('/transcode')
@@ -103,7 +108,9 @@ def transcode():
 
     # In the background kick off the download and transcoding
     transcoder = TranscodeE16(dataDir)
-    start_new_thread(transcoder.processFile, (requestedFile, targetFileName,))
+    threading.Thread(target=transcoder.processFile,
+        args=(requestedFile, targetFileName)
+    ).start()    
 
     # Return success of started job and the ID to use to query status
     return json.dumps({
@@ -125,13 +132,6 @@ def get_video_duration(request):
 
     log.info("Duration query of video completed with duration: {}", duration)
     return duration
-
-
-def get_transcode_price(request):
-
-    duration = get_video_duration(request)
-
-    return duration * SATOSHI_PER_MIN_PRICE
 
 
 
