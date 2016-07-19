@@ -1,5 +1,6 @@
 
 import logging
+import os
 from transcodeE16 import TranscodeE16
 
 from two1.commands.util import config
@@ -11,13 +12,14 @@ requests = BitTransferRequests(Wallet(), config.Config().username)
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.INFO)
 
-def testDuration(target):
+def testDuration():
     try:
+        log.warning("In testDuration()")
         dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'data')
 
         # Create the speed testing client
         transcoder = TranscodeE16(dataDir)
-        duration = transcoder.transcoder('http://www.esixteen.co/video/sample.mp4')
+        duration = transcoder.transcoder('http://www.esixteen.co/video/1sample.mp4')
 
         log.info("Success!")
         log.info("Duration test completed with duration: {}", duration  )
@@ -31,7 +33,7 @@ if __name__ == '__main__':
 
     @click.command()
     @click.option('--duration', is_flag=True)
-    def run(duration, target):
+    def run(duration):
 
         if duration:
             testDuration()

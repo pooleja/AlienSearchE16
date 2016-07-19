@@ -3,7 +3,7 @@ import logging
 import re
 
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 class TranscodeE16:
 
@@ -13,15 +13,17 @@ class TranscodeE16:
 
     def transcoder(self, videoUrl):
 
-        log.info("Checking for video duration with url: {}".format(videoUrl))
-
-        durationOutput = subprocess.check_output(['avconv', '-i', videoUrl, '2>&1'])
-        p = re.compile('/Duration: (.*?),/')
-        durationSearch = p.search(durationOutput)
+        print("Checking for video duration with url: {}".format(videoUrl))
+        
+        status = subprocess.run('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        
+        print(status.stdout)
+        p = re.compile('Duration: (.*?),')
+        durationSearch = p.search(str(status.stdout))
 
         if durationSearch:
             group1 = durationSearch.group(1)
-            log.info("Found duration: {}".format(group1))
+            print("Found duration: {}".format(group1))
 
             # Split out the duration time and return duration in minutes (in format HH:MM:SS.MS)
             msSplit = group1.split('.')[0]
@@ -35,8 +37,9 @@ class TranscodeE16:
             if seconds > 0:
                 retMins += 1
 
-            log.info("Calculated {} minutes for video.".format(retMins))
+            print("Calculated {} minutes for video.".format(retMins))
 
             return retMins
         else:
+            print("Failed to match regex for Duration")
             return 0
