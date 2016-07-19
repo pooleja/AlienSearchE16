@@ -24,12 +24,9 @@ from two1.bitrequests import BitTransferRequests
 from two1.bitrequests import BitRequestsError
 requests = BitTransferRequests(Wallet(), config.Config().username)
 
-from speedE16 import SpeedE16
+from transcodeE16 import TranscodeE16
 
 app = Flask(__name__)
-
-# Set the max upload size to 2 MB
-app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
 
 # setup wallet
 wallet = Wallet()
@@ -41,6 +38,9 @@ log.setLevel(logging.ERROR)
 
 dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'server-data')
 
+# Cost per minute for transcoding jobs - approx 1 cent per min
+SATOSHI_PER_MIN_PRICE = 1500
+
 @app.route('/manifest')
 def manifest():
     """Provide the app manifest to the 21 crawler.
@@ -50,92 +50,43 @@ def manifest():
     return json.dumps(manifest)
 
 
-@app.route('/upload', methods=['POST'])
-@payment.required(5)
-def upload():
-    print("Upload requested.")
+@app.route('/price')
+@payment.required(1)
+def price():
+    """ Calculates the price for transcoding the video specified in 'url' query param
 
-    # First, clear out any old uploaded files that are older than an hour
-    delete_before_time = time.time() - (60 * 60)
-    files = glob.glob(os.path.join(dataDir, "*"))
-    for file in files:
-        if file.endswith(".md") != True and os.path.isfile(file) == True :
-            if os.path.getmtime(file) < delete_before_time :
-                print("Removing old file: " + file)
-                os.remove(file)
-
-
-    # check if the post request has the file part
-    if 'file' not in request.files:
-        return 'File Upload arg not found', 400
-
-    file = request.files['file']
-
-    # if user does not select file, browser also submits an empty part without filename
-    if file.filename == '':
-        return 'No selected file', 400
-
-    # Generate a random file name and save it
-    filename = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20))
-    file.save(os.path.join(dataDir, filename))
-
-    # Return the file name so the client knows what to request to test download
-    return json.dumps({ 'success' : True, 'filename' : filename }, indent=4, sort_keys=True)
-
-@app.route('/download')
-@payment.required(5)
-def download():
-    """ Downloads the file requested by the query param
-
-    Returns: HTTPResponse 200 the file payload.
+    Returns: HTTPResponse 200 with the details about price.
     HTTP Response 404 if the file is not found.
+    HTTP Response 500 if an error is encountered.
     """
 
-    print("Download requested.")
+    # Get the URL to the file being requested
+    requestedFile = request.args.get('url')
 
-    # Build the path to the file from the current dir + data dir + requested file name
-    requestedFile = request.args.get('file')
-    filePath = os.path.join(dataDir, requestedFile)
+    log.info("Price info requested for URL: {}.".format(requestedFile))
 
-    if os.path.isfile(filePath) != True :
-        return 'HTTP Status 404: Requested file not found', 404
+    try:
+        # Create the transcoding helper class
+        transcoder = TranscodeE16(dataDir)
+        duration = transcoder.getDuration(requestedFile)
 
-    return send_from_directory(dataDir, requestedFile)
+        # An error occurred if we could not get a valid duration
+        if duration == 0:
+            log.warning("Failure: Could not determine the length of the video file")
+            return json.dumps({ "success": False, "error": "Failure: Could not determine the length of the video file"}), 500
 
+        log.info("Duration query of video completed with duration: {}", duration)
+        return json.dumps({
+            "success": True,
+            "price": duration * SATOSHI_PER_MIN_PRICE,
+            "minutes": duration,
+            "pricePerMin":  SATOSHI_PER_MIN_PRICE
+        })
 
-@app.route('/remote')
-@payment.required(10)
-def remote():
-    """ Downloads a file from a remote server and responds back with stats and sha256 of downloaded file.
-        Payment required is 10 satoshis since it will cost 5 satoshis to download from the remote host
+    except Exception as err:
+        log.warning("Failure: {0}".format(err))
+        return json.dumps({ "success": False, "error": "Error: {0}".format(err) }), 404
 
-    Returns: HTTPResponse 200 the file payload is invalid.
-    HTTP Response 404 if the file is not found.
-    """
-
-    print("Remote query requested.")
-
-    # Build the path to the file from the current dir + data dir + requested file name
-    requestedFile = request.args.get('file')
-    requestedHost = request.args.get('host')
-
-    print("Requesting file: " + requestedFile + " from host: " + requestedHost)
-
-    # Create the speed testing client
-    remoteBaseUrl = os.path.join(dataDir, "remote")
-    speed = SpeedE16(remoteBaseUrl, "http://" + requestedHost + ":8016")
-
-    downloadData = speed.download(requests, requestedFile)
-
-    if downloadData['success'] == True:
-
-        print("Download shows success")
-
-        # Delete the file downloaded file since we don't need it anymore
-        os.remove(downloadData['download_path'])
-        print("Deleted the temp downloaded file: " + downloadData['download_path'])
-
-    return json.dumps(downloadData, indent=4, sort_keys=True)
 
 
 if __name__ == '__main__':
@@ -146,7 +97,7 @@ if __name__ == '__main__':
                   help="Run in daemon mode.")
     def run(daemon):
         if daemon:
-            pid_file = './speedE16.pid'
+            pid_file = './transcodeE16.pid'
             if os.path.isfile(pid_file):
                 pid = int(open(pid_file).read())
                 os.remove(pid_file)
@@ -156,12 +107,12 @@ if __name__ == '__main__':
                 except:
                     pass
             try:
-                p = subprocess.Popen(['python3', 'speedE16-server.py'])
+                p = subprocess.Popen(['python3', 'transcodeE16-server.py'])
                 open(pid_file, 'w').write(str(p.pid))
             except subprocess.CalledProcessError:
-                raise ValueError("error starting speedE16-server.py daemon")
+                raise ValueError("error starting transcodeE16-server.py daemon")
         else:
             print("Server running...")
-            app.run(host='0.0.0.0', port=8016)
+            app.run(host='0.0.0.0', port=9016)
 
     run()

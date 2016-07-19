@@ -19,7 +19,7 @@ def testDuration():
 
         # Create the speed testing client
         transcoder = TranscodeE16(dataDir)
-        duration = transcoder.transcoder('http://www.esixteen.co/video/1sample.mp4')
+        duration = transcoder.getDuration('http://www.esixteen.co/video/sample.mp4')
 
         log.info("Success!")
         log.info("Duration test completed with duration: {}", duration  )
