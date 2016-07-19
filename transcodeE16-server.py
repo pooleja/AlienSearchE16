@@ -1,31 +1,23 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
+"""Flask Server to run TranscodeE16 Endpoints."""
 import json
 import logging
 import psutil
 import subprocess
 import os
 import yaml
-import ipaddress
 import string
 import random
-import glob
-import time
 import threading
+from transcodeE16 import TranscodeE16
 
 from flask import Flask
 from flask import request
-from flask import send_from_directory
 
 from two1.commands.util import config
 from two1.wallet.two1_wallet import Wallet
 from two1.bitserv.flask import Payment
 from two1.bitrequests import BitTransferRequests
-from two1.bitrequests import BitRequestsError
 requests = BitTransferRequests(Wallet(), config.Config().username)
-
-from transcodeE16 import TranscodeE16
 
 app = Flask(__name__)
 
@@ -42,10 +34,10 @@ dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'server-data
 # Cost per minute for transcoding jobs - approx 1 cent per min
 SATOSHI_PER_MIN_PRICE = 1500
 
+
 @app.route('/manifest')
 def manifest():
-    """Provide the app manifest to the 21 crawler.
-    """
+    """Provide the app manifest to the 21 crawler."""
     with open('./manifest.yaml', 'r') as f:
         manifest = yaml.load(f)
     return json.dumps(manifest)
@@ -54,13 +46,12 @@ def manifest():
 @app.route('/price')
 @payment.required(1)
 def price():
-    """ Calculates the price for transcoding the video specified in 'url' query param
+    """Calculate the price for transcoding the video specified in 'url' query param.
 
     Returns: HTTPResponse 200 with the details about price.
     HTTP Response 404 if the file is not found.
     HTTP Response 500 if an error is encountered.
     """
-
     try:
 
         duration = get_video_duration(request)
@@ -68,7 +59,7 @@ def price():
         # An error occurred if we could not get a valid duration
         if duration == 0:
             log.warning("Failure: Could not determine the length of the video file")
-            return json.dumps({ "success": False, "error": "Failure: Could not determine the length of the video file"}), 500
+            return json.dumps({"success": False, "error": "Failure: Could not determine the length of the video file"}), 500
 
         log.info("Duration query of video completed with duration: {}", duration)
 
@@ -81,10 +72,11 @@ def price():
 
     except Exception as err:
         log.warning("Failure: {0}".format(err))
-        return json.dumps({ "success": False, "error": "Error: {0}".format(err) }), 404
+        return json.dumps({"success": False, "error": "Error: {0}".format(err)}), 404
+
 
 def get_transcode_price(request):
-
+    """Calculate the price."""
     duration = get_video_duration(request)
 
     return duration * SATOSHI_PER_MIN_PRICE
@@ -93,13 +85,12 @@ def get_transcode_price(request):
 @app.route('/transcode')
 @payment.required(get_transcode_price)
 def transcode():
-    """ Transcodes the video specified in 'url' query param
+    """Transcode the video specified in 'url' query param.
 
     Returns: HTTPResponse 200 with the details about price.
     HTTP Response 404 if the file is not found.
     HTTP Response 500 if an error is encountered.
     """
-
     # Get the URL to the file being requested
     requestedFile = request.args.get('url')
 
@@ -109,18 +100,19 @@ def transcode():
     # In the background kick off the download and transcoding
     transcoder = TranscodeE16(dataDir)
     threading.Thread(target=transcoder.processFile,
-        args=(requestedFile, jobId)
-    ).start()
+                     args=(requestedFile, jobId)
+                     ).start()
 
     # Return success of started job and the ID to use to query status
     return json.dumps({
         "success": True,
-        "jobId" : jobId,
-        "message" : "Transcoding job has started."
+        "jobId": jobId,
+        "message": "Transcoding job has started."
     })
 
-def get_video_duration(request):
 
+def get_video_duration(request):
+    """Get the duration."""
     # Get the URL to the file being requested
     requestedFile = request.args.get('url')
 
@@ -134,7 +126,6 @@ def get_video_duration(request):
     return duration
 
 
-
 if __name__ == '__main__':
     import click
 
@@ -142,6 +133,7 @@ if __name__ == '__main__':
     @click.option("-d", "--daemon", default=False, is_flag=True,
                   help="Run in daemon mode.")
     def run(daemon):
+        """Run the server."""
         if daemon:
             pid_file = './transcodeE16.pid'
             if os.path.isfile(pid_file):
