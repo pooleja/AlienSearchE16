@@ -1,3 +1,7 @@
 __pycache__
 
 speedE16.pid
+
+server-data/*.mp4
+
+jobs.db

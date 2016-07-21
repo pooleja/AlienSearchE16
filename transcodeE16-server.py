@@ -9,9 +9,11 @@ import string
 import random
 import threading
 from transcodeE16 import TranscodeE16
+from sqldb import TranscodeJobsSQL
 
 from flask import Flask
 from flask import request
+from flask import send_from_directory
 
 from two1.commands.util import config
 from two1.wallet.two1_wallet import Wallet
@@ -34,6 +36,9 @@ dataDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'server-data
 # Cost per minute for transcoding jobs - approx 1 cent per min
 SATOSHI_PER_MIN_PRICE = 1500
 
+# Create the DB connection
+sql = TranscodeJobsSQL()
+
 
 @app.route('/manifest')
 def manifest():
@@ -44,7 +49,7 @@ def manifest():
 
 
 @app.route('/price')
-@payment.required(1)
+@payment.required(10)
 def price():
     """Calculate the price for transcoding the video specified in 'url' query param.
 
@@ -67,7 +72,7 @@ def price():
             "success": True,
             "price": duration * SATOSHI_PER_MIN_PRICE,
             "minutes": duration,
-            "pricePerMin":  SATOSHI_PER_MIN_PRICE
+            "pricePerMin": SATOSHI_PER_MIN_PRICE
         })
 
     except Exception as err:
@@ -97,10 +102,14 @@ def transcode():
     # Generate a random file name for the output of the transcoding job
     jobId = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(20))
 
+    # Create the entry in the job table
+
+    sql.insert_new_job((jobId, sql.STATUS_STARTED, "Starting Job.", 0, 0))
+
     # In the background kick off the download and transcoding
     transcoder = TranscodeE16(dataDir)
     threading.Thread(target=transcoder.processFile,
-                     args=(requestedFile, jobId)
+                     args=(requestedFile, jobId, sql)
                      ).start()
 
     # Return success of started job and the ID to use to query status
@@ -109,6 +118,78 @@ def transcode():
         "jobId": jobId,
         "message": "Transcoding job has started."
     })
+
+
+@app.route('/status')
+@payment.required(10)
+def status():
+    """
+    Get the status of the requested job.
+    """
+    # Get the job ID that is being requested.
+    requestedJob = request.args.get('jobId')
+    print("Status requested for job {}".format(requestedJob))
+
+    try:
+
+        info = sql.get_job_info(requestedJob)
+
+        return json.dumps({
+            "success": True,
+            "jobId": info[0],
+            "Status": info[1],
+            "Message": info[2],
+            "PercentComplete": info[3],
+            "JobCompletionTime": info[4]
+        })
+
+    except Exception as err:
+        log.warning("Failure: {0}".format(err))
+        return json.dumps({"success": False, "error": "Error: {0}".format(err)}), 500
+
+
+@app.route('/download')
+@payment.required(10)
+def download():
+    """
+    Returns the file specified in the jobId param.
+
+    Throws a 404 if the job is not found.
+    Throws a 500 if the job is not completed or errored out.
+    """
+    # Get the job ID that is being requested.
+    requestedJob = request.args.get('jobId')
+    print("Download requested for job {}".format(requestedJob))
+
+    try:
+
+        # Query for the job info
+        info = sql.get_job_info(requestedJob)
+
+        # Make sure they requested a valid job
+        if info:
+
+            # Get the status of the job
+            jobStatus = info[1]
+
+            # Check if the job is still running
+            if (jobStatus == sql.STATUS_STARTED) or (info == sql.STATUS_TRANSCODING):
+                return json.dumps({"succes": False, "error": "Job has not completed yet"}), 500
+
+            # Check if the job failed
+            if jobStatus == sql.STATUS_ERROR:
+                return json.dumps({"succes": False, "error": "Transcoding job failed: {}".format(info[2])}), 500
+
+            # Return the file
+            return send_from_directory(dataDir, "{}.mp4".format(requestedJob))
+
+        else:
+            # Job was not found
+            return json.dumps({"succes": False, "error": "JobId {} not found."}.format(requestedJob)), 404
+
+    except Exception as err:
+        log.warning("Failure: {0}".format(err))
+        return json.dumps({"success": False, "error": "Error: {0}".format(err)}), 500
 
 
 def get_video_duration(request):
