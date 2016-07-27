@@ -70,7 +70,7 @@ The transcoding size specified will determine the height of the output video and
 
 All transcoded videos will use an MP4 container, use the H.264 video codec with the 'baseline" profile, and use the AAC encoder for audio.
 
-Any files that have been transcoded will be automatically deleted after 24 hours.  A cleanup job is run by the service that will look every hour to remove any videos with a date stamp more thatn 24 hours old.
+Any files that have been transcoded will be automatically deleted after 24 hours.  A cleanup job is run by the service that will look every hour to remove any videos with a date stamp more than 24 hours old.
 
 ## Example
 The client can check to see if the service is ready to process jobs:
