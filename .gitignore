@@ -1,7 +1,10 @@
 __pycache__
 
-speedE16.pid
+transcodeE16.pid
 
 server-data/*.mp4
 
 jobs.db
+jobs.db-journal
+
+.DS_Store

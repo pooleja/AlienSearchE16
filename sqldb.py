@@ -17,7 +17,7 @@ class TranscodeJobsSQL():
     """
 
     # Status defitions for the jobs
-    STATUS_STARTED = "STATUS_STARTED"
+    STATUS_QUEUED = "STATUS_QUEUED"
     STATUS_TRANSCODING = "STATUS_TRANSCODING"
     STATUS_COMPLETE = "STATUS_COMPLETE"
     STATUS_ERROR = "STATUS_ERROR"
@@ -36,7 +36,7 @@ class TranscodeJobsSQL():
         """
         with db_rlock:
             print("Creating Table.")
-            query = 'CREATE TABLE Jobs(Id TEXT, Status TEXT, Message TEXT, PercentComplete REAL, ElapsedTime REAL)'
+            query = 'CREATE TABLE Jobs(Id TEXT, SourceUrl TEXT, Status TEXT, Message TEXT, PercentComplete REAL, ElapsedTime REAL, Scale TEXT)'
             self.cursor.execute(query)
 
     def insert_new_job(self, inputs):
@@ -44,7 +44,7 @@ class TranscodeJobsSQL():
         Insert inputs list into jobs.db.
         """
         with db_rlock:
-            query = 'INSERT INTO Jobs(Id, Status, Message, PercentComplete, ElapsedTime) VALUES(?,?,?,?,?)'
+            query = 'INSERT INTO Jobs(Id, SourceUrl, Status, Message, PercentComplete, ElapsedTime, Scale) VALUES(?,?,?,?,?,?,?)'
             self.cursor.execute(query, (inputs))
             self.conn.commit()
 
@@ -92,6 +92,24 @@ class TranscodeJobsSQL():
             query = 'SELECT * FROM Jobs WHERE Id=?;'
             res = self.cursor.execute(query, (jobId,))
             return res.fetchone()
+
+    def get_previously_running_jobs(self):
+        """
+        Find any jobs that are in the Queued or Transcoding state.
+        """
+        with db_rlock:
+            query = 'SELECT * FROM Jobs WHERE Status in (?,?);'
+            res = self.cursor.execute(query, (self.STATUS_TRANSCODING, self.STATUS_QUEUED))
+            return res.fetchall()
+
+    def get_jobs_with_status(self, status):
+        """
+        Find any jobs with the specified status.
+        """
+        with db_rlock:
+            query = 'SELECT * FROM Jobs WHERE Status=?;'
+            res = self.cursor.execute(query, (status,))
+            return res.fetchall()
 
     def close_connection(self):
         """

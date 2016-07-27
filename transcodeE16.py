@@ -6,9 +6,13 @@ import re
 import os
 import pexpect
 import time
+import threading
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.INFO)
+
+# Job lock for multithreaded use case
+job_rlock = threading.RLock()
 
 
 class TranscodeE16:
@@ -111,68 +115,79 @@ class TranscodeE16:
             log.info("Failed to match regex for Duration")
             return 0
 
-    def processFile(self, sourceUrl, jobId, sql):
+    def processFile(self, sourceUrl, jobId, sql, scale):
         """Transcode the file."""
-        log.info("Job has started for {} and jobId {}".format(sourceUrl, jobId))
+        print("Job has started for {} and jobId {} and scale= {}".format(sourceUrl, jobId, scale))
 
         # Transcode the file
         targetFile = os.path.join(self.data_dir, jobId + ".mp4")
 
         videoDuration = self.getDurationSeconds(sourceUrl)
 
+        # Get the size of the video to use
+        size = '1080'
+        if scale == '720p':
+            size = '720'
+        if scale == '480p':
+            size = '480'
+
         try:
 
-            # Trigger new thread to monitor status
-            cmd = "avconv -i " + sourceUrl + " -c:v libx264 -vf scale=1024:768 -strict -2 -profile:v baseline " + targetFile
+            # Only allow one transcoding job to run at a time.  Other threads can queue up.
+            with job_rlock:
 
-            startTime = time.time()
-            thread = pexpect.spawn(cmd)
+                # Trigger new thread to monitor status
+                cmd = "avconv -i " + sourceUrl + " -c:v libx264 -vf scale=-1:" + size + " -strict -2 -profile:v baseline " + targetFile
+                print("Cmd: {}".format(cmd))
 
-            # Update the job status to let the user know it is being transcoded
-            sql.update_job_status(jobId, sql.STATUS_TRANSCODING)
-            sql.update_job_message(jobId, "Started Transcoding file.")
+                startTime = time.time()
+                thread = pexpect.spawn(cmd)
 
-            # Create a counter to only update the status every 10 attempts
-            counter = 0
+                # Update the job status to let the user know it is being transcoded
+                sql.update_job_status(jobId, sql.STATUS_TRANSCODING)
+                sql.update_job_message(jobId, "Started Transcoding file.")
 
-            cpl = thread.compile_pattern_list([pexpect.EOF, 'time=(.*?) '])
-            while True:
-                i = thread.expect_list(cpl, timeout=None)
-                if i == 0:  # EOF
-                    print("Transcoding job finished.")
-                    sql.update_job_status(jobId, sql.STATUS_COMPLETE)
-                    sql.update_job_percent_complete(jobId, 100)
-                    sql.update_job_message(jobId, "Transcoding job finished.")
-                    break
-                elif i == 1:
+                # Create a counter to only update the status every 10 attempts
+                counter = 0
 
-                    # Incerement the counter
-                    counter = counter + 1
+                cpl = thread.compile_pattern_list([pexpect.EOF, 'time=(.*?) '])
+                while True:
+                    i = thread.expect_list(cpl, timeout=None)
+                    if i == 0:  # EOF
+                        print("Transcoding job finished.")
+                        sql.update_job_status(jobId, sql.STATUS_COMPLETE)
+                        sql.update_job_percent_complete(jobId, 100)
+                        sql.update_job_message(jobId, "Transcoding job finished.")
+                        break
+                    elif i == 1:
 
-                    # Only update the db on every 10th status
-                    if counter == 10:
+                        # Incerement the counter
+                        counter = counter + 1
 
-                        # Reset the counter back to 0
-                        counter = 0
+                        # Only update the db on every 10th status
+                        if counter == 10:
 
-                        timeString = thread.match.group(1)
-                        print("timeString: {}".format(timeString.decode("utf-8")))
-                        currentProcessTime = self.parseTimeToSeconds(timeString.decode("utf-8"))
+                            # Reset the counter back to 0
+                            counter = 0
 
-                        # Calculate percentage
-                        percentage = int((currentProcessTime / videoDuration) * 100)
-                        print("Current percent complete: {}%".format(percentage))
+                            timeString = thread.match.group(1)
+                            log.info("timeString: {}".format(timeString.decode("utf-8")))
+                            currentProcessTime = self.parseTimeToSeconds(timeString.decode("utf-8"))
 
-                        # Update the job status in the DB
-                        sql.update_job_percent_complete(jobId, percentage)
-                        sql.update_job_message(jobId, "Transcoding job is running and has completed {}%".format(percentage))
+                            # Calculate percentage
+                            percentage = int((currentProcessTime / videoDuration) * 100)
+                            log.info("Current percent complete: {}%".format(percentage))
 
-                        # Update the processing time in the DB
-                        endTime = time.time()
-                        uploadElapsedTime = endTime - startTime
-                        sql.update_elapsed_time(jobId, int(uploadElapsedTime))
+                            # Update the job status in the DB
+                            sql.update_job_percent_complete(jobId, percentage)
+                            sql.update_job_message(jobId, "Transcoding job is running and has completed {}%".format(percentage))
 
-            thread.close()
+                            # Update the processing time in the DB
+                            endTime = time.time()
+                            uploadElapsedTime = endTime - startTime
+                            sql.update_elapsed_time(jobId, int(uploadElapsedTime))
+
+                thread.close()
 
         except subprocess.CalledProcessError as err:
             log.error("Failed to transcode video: {}".format(err))
