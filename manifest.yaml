@@ -1,26 +1,247 @@
-basePath: /
-definitions:
-host: 10.244.79.96:9016
+# Swagger definition for the TranscodeE16 Manifest
+swagger: '2.0'
+
+# Metadata
 info:
-  contact: {email: james@esixteen.com, name: eSixteen.co }
-  description: Earn bitcoin by transcoding video.
+  version: "0.0.1"
   title: TranscodeE16
+  description: 'Earn bitcoin by transcoding video on the 21 marketplace.'
+  termsOfService: https://opensource.org/licenses/MIT
+  contact:
+    email: james@esixteen.com
+    name: eSixteen.co
+    url: https://www.esixteen.co/
+  x-21-usage: 'Use the available API endpoints to trigger the service to transcode your video.'
+  x-21-quick-buy: "21 buy url http://10.244.79.96:9016/server-status"
   x-21-category: utilities
+  x-21-github-profile-url: https://github.com/pooleja
   x-21-github-project-url: https://github.com/pooleja/TranscodeE16
   x-21-keywords: [stats, speed, video, transcode, download, test, iot, sensor]
-  x-21-quick-buy: "$ 21 buy http://10.244.79.96:9016/"
+  x-21-total-price:
+     min: 10
+     max: 180000
+host: 10.244.79.96:9016
+schemes:
+   - http
+basePath: /
+x-21-manifest-path: /manifest
+
+# Available paths for the app
 paths:
+  /manifest:
+    get:
+      description: Gets the `manifest` of the application.
+
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+          description: Successfully found the manifest YAML file and returned it to client.
+
+  /server-status:
+    get:
+      description: Gets the counts of jobs running and queued on the server.
+
+      # Expected responses for this operation:
+      responses:
+
+        # Response code
+        200:
+          description: Successful response
+          schema:
+            title: Result
+            type: object
+            properties:
+              success:
+                type: boolean
+              numQueudJobs:
+                type: integer
+              numRunningJobs:
+                type: integer
+
+        # Response code
+        500:
+          description: Internal Error
+          schema:
+            title: Result
+            type: object
+            properties:
+              success:
+                type: boolean
+              error:
+                type: string
+
   /price:
     get:
-      consumes: [application/x-www-form-urlencoded]
-      produces: [application/json]
+      description: Gets the estimated price of the video to be transcoded.  Cost is in satoshis.
+
+      parameters:
+        -
+          name: url
+          in: query
+          description: URL to the location of the video file that needs to be priced.
+          required: true
+          type: string
+
+      # Expected responses for this operation:
       responses:
+
+        # Response code
         200:
-          description: Price for transcoding specified video
+          description: Successful response
           schema:
+            title: Result
+            type: object
             properties:
-              server: {$ref: '#/definitions/Server'}
-      summary: Returns stats about the device.
-schemes: [http]
-swagger: '2.0'
-x-21-manifest-path: /manifest
+              success:
+                type: boolean
+              minutes:
+                type: integer
+              price:
+                type: integer
+              pricePerMin:
+                type: integer
+
+        # Response code
+        404:
+          description: Failure or unable to find specified video
+          schema:
+            title: Result
+            type: object
+            properties:
+              success:
+                type: boolean
+              error:
+                type: string
+
+  /transcode:
+    get:
+      description: Starts the transcoding job for the file specified.
+
+      parameters:
+        -
+          name: url
+          in: query
+          description: URL to the location of the video file that needs to be transcoded.
+          required: true
+          type: string
+        -
+          name: scale
+          in: query
+          description: Scaling option.  Valid options are `1080p`, `720p`, or `480p`.  Defaults to `1080p` if not specified.
+          required: false
+          type: string
+
+      # Expected responses for this operation:
+      responses:
+
+        # Response code
+        200:
+          description: Successful response
+          schema:
+            title: Result
+            type: object
+            properties:
+              success:
+                type: boolean
+              jobId:
+                type: integer
+              message:
+                type: string
+
+        # Response code
+        500:
+          description: Failure or unable to find specified video
+
+  /job-status:
+    get:
+      description: Gets the status of transcoding for the specified Job ID.
+
+      parameters:
+        -
+          name: jobId
+          in: query
+          description: Job ID for status query.
+          required: true
+          type: string
+
+      # Expected responses for this operation:
+      responses:
+
+        # Response code
+        200:
+          description: Successful response
+          schema:
+            title: Result
+            type: object
+            properties:
+              success:
+                type: boolean
+              jobId:
+                type: string
+              Status:
+                type: string
+              PercentComplete:
+                type: number
+              Message:
+                type: string
+              JobCompletionTime:
+                type: number
+
+        # Response code
+        500:
+          description: Internal Error
+          schema:
+            title: Result
+            type: object
+            properties:
+              success:
+                type: boolean
+              error:
+                type: string
+
+  /download:
+    get:
+      description: Download the results of the transcoded video.
+
+      parameters:
+        -
+          name: jobId
+          in: query
+          description: Job ID for file to download.
+          required: true
+          type: string
+
+      # Expected responses for this operation:
+      responses:
+
+        # Response code
+        200:
+          description: Successful response with video download.
+          schema:
+            type: file
+
+        # Response code
+        500:
+          description: Internal Error
+          schema:
+            title: Result
+            type: object
+            properties:
+              success:
+                type: boolean
+              error:
+                type: string
+
+        # Response code
+        404:
+          description: Specified Job ID not found.
+          schema:
+            title: Result
+            type: object
+            properties:
+              success:
+                type: boolean
+              error:
+                type: string
+        

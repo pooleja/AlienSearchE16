@@ -25,7 +25,7 @@ from two1.bitrequests import BitTransferRequests
 requests = BitTransferRequests(Wallet(), config.Config().username)
 
 app = Flask(__name__)
-app.debug = True
+# app.debug = True
 
 # setup wallet
 wallet = Wallet()
