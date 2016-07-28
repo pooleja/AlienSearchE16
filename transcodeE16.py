@@ -75,12 +75,12 @@ class TranscodeE16:
 
         # We actually expect this to throw a non-zero return val
         try:
-            subprocess.check_output('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+            subprocess.check_output('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT)
         except subprocess.CalledProcessError as err:
 
             log.info(err.output)
             p = re.compile('Duration: (.*?),')
-            durationSearch = p.search(err.output)
+            durationSearch = p.search(str(err.output))
 
             if durationSearch:
                 group1 = durationSearch.group(1)
@@ -101,24 +101,28 @@ class TranscodeE16:
         """Get the seconds for the video."""
         log.info("Checking for video duration with url: {}".format(videoUrl))
 
-        status = subprocess.call('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        try:
+            subprocess.check_output('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as err:
 
-        log.info(status.stdout)
-        p = re.compile('Duration: (.*?),')
-        durationSearch = p.search(str(status.stdout))
+            log.info(err.output)
+            p = re.compile('Duration: (.*?),')
+            durationSearch = p.search(str(err.output))
 
-        if durationSearch:
-            group1 = durationSearch.group(1)
-            log.info("Found duration: {}".format(group1))
+            if durationSearch:
+                group1 = durationSearch.group(1)
+                log.info("Found duration: {}".format(group1))
 
-            secs = self.parseTimeToSeconds(group1)
+                secs = self.parseTimeToSeconds(group1)
 
-            log.info("Calculated {} seconds for video.".format(secs))
+                log.info("Calculated {} seconds for video.".format(secs))
 
-            return secs
-        else:
-            log.info("Failed to match regex for Duration")
-            return 0
+                return secs
+            else:
+                log.info("Failed to match regex for Duration")
+                return 0
+
+        return 0
 
     def processFile(self, sourceUrl, jobId, sql, scale):
         """Transcode the file."""
