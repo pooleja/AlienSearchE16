@@ -73,30 +73,35 @@ class TranscodeE16:
         """Get the minutes for the video."""
         log.info("Checking for video duration with url: {}".format(videoUrl))
 
-        status = subprocess.run('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        # We actually expect this to throw a non-zero return val
+        try:
+            subprocess.check_output('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        except subprocess.CalledProcessError as err:
 
-        log.info(status.stdout)
-        p = re.compile('Duration: (.*?),')
-        durationSearch = p.search(str(status.stdout))
+            log.info(err.output)
+            p = re.compile('Duration: (.*?),')
+            durationSearch = p.search(err.output)
 
-        if durationSearch:
-            group1 = durationSearch.group(1)
-            log.info("Found duration: {}".format(group1))
+            if durationSearch:
+                group1 = durationSearch.group(1)
+                log.info("Found duration: {}".format(group1))
 
-            retMins = self.parseTimeToMins(group1)
+                retMins = self.parseTimeToMins(group1)
 
-            log.info("Calculated {} minutes for video.".format(retMins))
+                log.info("Calculated {} minutes for video.".format(retMins))
 
-            return retMins
-        else:
-            log.info("Failed to match regex for Duration")
-            return 0
+                return retMins
+            else:
+                log.info("Failed to match regex for Duration")
+                return 0
+
+        return 0
 
     def getDurationSeconds(self, videoUrl):
         """Get the seconds for the video."""
         log.info("Checking for video duration with url: {}".format(videoUrl))
 
-        status = subprocess.run('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        status = subprocess.call('avconv -i ' + videoUrl, shell=True, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
 
         log.info(status.stdout)
         p = re.compile('Duration: (.*?),')
