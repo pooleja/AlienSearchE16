@@ -5,7 +5,7 @@ import sqlite3
 import os
 import threading
 
-DATABASE_FILE = "/mnt/web/TranscodeE16/jobs.db"
+DATABASE_FILE = "{PWD}"
 
 # DB lock for multithreaded use case
 db_rlock = threading.RLock()
