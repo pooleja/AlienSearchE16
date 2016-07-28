@@ -146,7 +146,7 @@ class TranscodeE16:
             with job_rlock:
 
                 # Trigger new thread to monitor status
-                cmd = "avconv -i " + sourceUrl + " -c:v libx264 -vf scale=-1:" + size + " -strict -2 -profile:v baseline " + targetFile
+                cmd = "avconv -i " + sourceUrl + " -c:v libx264 -vf \"scale=trunc(iw/2)*2:" + size + "\" -strict -2 -profile:v baseline " + targetFile
                 print("Cmd: {}".format(cmd))
 
                 startTime = time.time()
