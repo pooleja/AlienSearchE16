@@ -66,7 +66,7 @@ When the client submits a job, they can specify among 3 video sizes:
 * 720p
 * 480p
 
-The transcoding size specified will determine the height of the output video and the width will be automatically determined to ensure the aspect ratio of the original video is maintained. 
+The transcoding size specified will determine the height of the output video and the width will be automatically determined to ensure the aspect ratio of the original video is maintained.
 
 All transcoded videos will use an MP4 container, use the H.264 video codec with the 'baseline" profile, and use the AAC encoder for audio.
 
@@ -96,7 +96,7 @@ Note that the client specified a video url where the service can grab the video 
 
 Next, request the transcoding job to run against this video:
 ```
-$ 21 buy url 'http://10.244.119.122:9016/transcode?url=http://www.esixteen.co/video/sample.mp4&scale=480p'
+$ 21 buy url 'http://localhost:9016/transcode?url=http://www.esixteen.co/video/sample.mp4&scale=480p'
 {
     "jobId": "UGD2HYU4CTPE6DVCCJB3",
     "message": "Transcoding job has started.",
