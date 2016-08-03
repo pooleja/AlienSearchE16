@@ -2,7 +2,7 @@
 
 ## Overview
 AlienSearchE16 is a bitcoin payable web app designed for the 21 Marketplace to allow clients to pay for the server to run SETI@home.  If we do find
-aliens one day, I think they would be intrigued with bitcoin.
+aliens one day, we think they would be intrigued with bitcoin.
 
 ## Installation
 To install, run:
