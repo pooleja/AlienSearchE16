@@ -7,7 +7,6 @@ import subprocess
 import re
 
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.INFO)
 
 # Job lock for multithreaded use case
 file_rlock = threading.RLock()
@@ -70,17 +69,17 @@ class AlienSearchE16:
             # Run the status cmd
             output = subprocess.check_output('boinccmd --get_simple_gui_info', shell=True, stderr=subprocess.STDOUT)
 
-            state = "UNKNOWN"
-            p = re.compile('active_task_state: .*?')
-            stateSearch = p.search(str(output))
-            if stateSearch:
-                state = stateSearch.group(1)
+            # See if the UI shows it as suspended
+            state = "RUNNING"
+            if str(output).find("suspended via GUI: yes") > 0:
+                state = "SUSPENDED"
 
             nodeCredits = '0'
-            p = re.compile('host_total_credit: .*?')
+            p = re.compile('host_total_credit: (\d+\.?\d*)')
             creditSearch = p.search(str(output))
+            log.debug(creditSearch)
             if creditSearch:
-                nodeCredits = stateSearch.group(1)
+                nodeCredits = creditSearch.group(1)
 
             return {
                 'success': True,
@@ -89,6 +88,7 @@ class AlienSearchE16:
             }
 
         except subprocess.CalledProcessError as err:
+            log.error(err)
             return {
                 'success': False,
                 'message': "Failed to get boinccmd status: {}".format(err)

@@ -8,3 +8,5 @@ jobs.db
 jobs.db-journal
 
 .DS_Store
+
+time.txt

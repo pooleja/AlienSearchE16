@@ -87,7 +87,6 @@ echo ""
 
 ## Overwrite path with present working directory.
 print_warning "Gathering present working directory for AlienSearchE16."
-print_warning "If you move TrancodeE16 to another folder, you must manually edit sqldb.py and update paths to your present working directory."
 
 ## Update apt-get package list
 print_step "updating package list"

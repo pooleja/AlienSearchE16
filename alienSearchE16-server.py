@@ -27,8 +27,7 @@ wallet = Wallet()
 payment = Payment(app, wallet)
 
 # hide logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+logger = logging.getLogger('werkzeug')
 
 # Create the alien search obj
 alienSearch = AlienSearchE16()
@@ -49,10 +48,10 @@ def status():
     Get the status from boinccmd.
     """
     try:
-        return alienSearch.getStatus()
+        return json.dumps(alienSearch.getStatus())
 
     except Exception as err:
-        log.warning("Failure: {0}".format(err))
+        logger.warning("Failure: {0}".format(err))
         return json.dumps({"success": False, "error": "Error: {0}".format(err)}), 500
 
 
@@ -77,10 +76,10 @@ def run():
     # Start BOINC if it is not already running
     alienSearch.startSeti()
 
-    return {
+    return json.dumps({
         'success': True,
         'message': "SETI will run until {}".format(time.ctime(newTime))
-    }
+    })
 
 
 def checkSetiTime():
@@ -90,10 +89,13 @@ def checkSetiTime():
     Run every hour.
     """
     while True:
+        logger.debug("Checking to see if SETI should be started/stopped.")
         existingTime = alienSearch.getTimeFromFile()
         if existingTime > time.time():
+            logger.debug("SETI should be running... starting now.")
             alienSearch.startSeti()
         else:
+            logger.debug("SETI should NOT be running... stopping now.")
             alienSearch.stopSeti()
 
         time.sleep(60 * 60)
@@ -103,10 +105,18 @@ if __name__ == '__main__':
     import click
 
     @click.command()
-    @click.option("-d", "--daemon", default=False, is_flag=True,
-                  help="Run in daemon mode.")
-    def start(daemon):
-        """Run the server."""
+    @click.option("-d", "--daemon", default=False, is_flag=True, help="Run in daemon mode.")
+    @click.option("-l", "--log", default="INFO", help="Logging level to use (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
+    def start(daemon, log):
+        """
+        Run the server.
+        """
+        # Set logging level
+        numeric_level = getattr(logging, log.upper(), None)
+        if not isinstance(numeric_level, int):
+            raise ValueError('Invalid log level: %s' % log)
+        logging.basicConfig(level=numeric_level)
+
         if daemon:
             pid_file = './AlienSearchE16.pid'
             if os.path.isfile(pid_file):
@@ -118,7 +128,7 @@ if __name__ == '__main__':
                 except:
                     pass
             try:
-                p = subprocess.Popen(['python3', 'alienSearch-server.py'])
+                p = subprocess.Popen(['python3', 'alienSearchE16-server.py'])
                 open(pid_file, 'w').write(str(p.pid))
             except subprocess.CalledProcessError:
                 raise ValueError("error starting alienSearch-server.py daemon")
