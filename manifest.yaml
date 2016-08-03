@@ -1,26 +1,26 @@
-# Swagger definition for the TranscodeE16 Manifest
+# Swagger definition for the AlienSearchE16 Manifest
 swagger: '2.0'
 
 # Metadata
 info:
   version: "0.0.1"
-  title: TranscodeE16
-  description: 'Earn bitcoin by transcoding video on the 21 marketplace.'
+  title: AlienSearchE16
+  description: 'Earn bitcoin by running SETI on the 21 marketplace.'
   termsOfService: https://opensource.org/licenses/MIT
   contact:
     email: james@esixteen.com
     name: eSixteen.co
     url: https://www.esixteen.co/
-  x-21-usage: 'Use the available API endpoints to trigger the service to transcode your video.'
-  x-21-quick-buy: "21 buy url http://10.244.79.96:9016/server-status"
+  x-21-usage: 'Use the available API endpoints to run SETI and look for Aliens.'
+  x-21-quick-buy: "21 buy url http://10.244.79.96:9016/status"
   x-21-category: utilities
   x-21-github-profile-url: https://github.com/pooleja
-  x-21-github-project-url: https://github.com/pooleja/TranscodeE16
-  x-21-keywords: [stats, speed, video, transcode, download, test, iot, sensor]
+  x-21-github-project-url: https://github.com/pooleja/AlienSearchE16
+  x-21-keywords: [alien, SETI, BOINC, iot, CPU]
   x-21-total-price:
      min: 10
-     max: 180000
-host: 10.244.79.96:9016
+     max: 1800
+host: 0.0.0.0:10016
 schemes:
    - http
 basePath: /
@@ -38,9 +38,9 @@ paths:
         200:
           description: Successfully found the manifest YAML file and returned it to client.
 
-  /server-status:
+  /status:
     get:
-      description: Gets the counts of jobs running and queued on the server.
+      description: Gets the status to tell the user whether SETI is running and also the credit count that this node has generated.
 
       # Expected responses for this operation:
       responses:
@@ -54,9 +54,9 @@ paths:
             properties:
               success:
                 type: boolean
-              numQueudJobs:
-                type: integer
-              numRunningJobs:
+              state:
+                type: string
+              hostCredits:
                 type: integer
 
         # Response code
@@ -71,17 +71,9 @@ paths:
               error:
                 type: string
 
-  /price:
+  /run:
     get:
-      description: Gets the estimated price of the video to be transcoded.  Cost is in satoshis.
-
-      parameters:
-        -
-          name: url
-          in: query
-          description: URL to the location of the video file that needs to be priced.
-          required: true
-          type: string
+      description: Adds an hour to the processing time to run SETI.  If the service is not running, it will start it.  If the service is already running, it will extend the current run time by an hour.
 
       # Expected responses for this operation:
       responses:
@@ -95,101 +87,11 @@ paths:
             properties:
               success:
                 type: boolean
-              minutes:
-                type: integer
-              price:
-                type: integer
-              pricePerMin:
-                type: integer
-
-        # Response code
-        404:
-          description: Failure or unable to find specified video
-          schema:
-            title: Result
-            type: object
-            properties:
-              success:
-                type: boolean
-              error:
-                type: string
-
-  /transcode:
-    get:
-      description: Starts the transcoding job for the file specified.
-
-      parameters:
-        -
-          name: url
-          in: query
-          description: URL to the location of the video file that needs to be transcoded.
-          required: true
-          type: string
-        -
-          name: scale
-          in: query
-          description: Scaling option.  Valid options are `1080p`, `720p`, or `480p`.  Defaults to `1080p` if not specified.
-          required: false
-          type: string
-
-      # Expected responses for this operation:
-      responses:
-
-        # Response code
-        200:
-          description: Successful response
-          schema:
-            title: Result
-            type: object
-            properties:
-              success:
-                type: boolean
-              jobId:
-                type: integer
               message:
                 type: string
 
         # Response code
         500:
-          description: Failure or unable to find specified video
-
-  /job-status:
-    get:
-      description: Gets the status of transcoding for the specified Job ID.
-
-      parameters:
-        -
-          name: jobId
-          in: query
-          description: Job ID for status query.
-          required: true
-          type: string
-
-      # Expected responses for this operation:
-      responses:
-
-        # Response code
-        200:
-          description: Successful response
-          schema:
-            title: Result
-            type: object
-            properties:
-              success:
-                type: boolean
-              jobId:
-                type: string
-              Status:
-                type: string
-              PercentComplete:
-                type: number
-              Message:
-                type: string
-              JobCompletionTime:
-                type: number
-
-        # Response code
-        500:
           description: Internal Error
           schema:
             title: Result
@@ -199,49 +101,3 @@ paths:
                 type: boolean
               error:
                 type: string
-
-  /download:
-    get:
-      description: Download the results of the transcoded video.
-
-      parameters:
-        -
-          name: jobId
-          in: query
-          description: Job ID for file to download.
-          required: true
-          type: string
-
-      # Expected responses for this operation:
-      responses:
-
-        # Response code
-        200:
-          description: Successful response with video download.
-          schema:
-            type: file
-
-        # Response code
-        500:
-          description: Internal Error
-          schema:
-            title: Result
-            type: object
-            properties:
-              success:
-                type: boolean
-              error:
-                type: string
-
-        # Response code
-        404:
-          description: Specified Job ID not found.
-          schema:
-            title: Result
-            type: object
-            properties:
-              success:
-                type: boolean
-              error:
-                type: string
-        

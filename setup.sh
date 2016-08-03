@@ -7,7 +7,7 @@
 # communications from server requests to eliminate bus collisions.
 
 ### List of packages to install
-declare -a APT_PACKAGES=("python3-pip" "sqlite3" "avconv" "libav-tools")
+declare -a APT_PACKAGES=("python3-pip" "boinc-client")
 declare -a PIP3_PACKAGES=("flask" "click" "PyYAML" "requests" "psutil" "pexpect")
 
 # Helper functions: bash pretty printing, pip3 and apt-get package
@@ -81,17 +81,13 @@ pip3_installer() {
 }
 
 ### Main program execution
-print_good "Welcome to TrancodeE16 installer!"
+print_good "Welcome to AlienSearchE16 installer!"
 
 echo ""
 
 ## Overwrite path with present working directory.
-print_warning "Gathering present working directory for TrancodeE16."
+print_warning "Gathering present working directory for AlienSearchE16."
 print_warning "If you move TrancodeE16 to another folder, you must manually edit sqldb.py and update paths to your present working directory."
-
-FULL_PATH="$(pwd)"
-DB_PATH="$FULL_PATH/jobs.db"
-sed -i 's|'"{PWD}"'|'"$DB_PATH"'|g' sqldb.py
 
 ## Update apt-get package list
 print_step "updating package list"
@@ -119,18 +115,18 @@ done
 
 print_good "Prerequisites installed."
 
-## Initialize SQLite database and take first sensor21 reading.
-print_step "Setting up SQLite Database..."
-python3 sqldb.py
+print_step "Setting up BOINC/SETI"
 
-## Verify SQLite database insertion and reading.
-print_step "Verifying SQLite Datbase write."
-sqlite3 jobs.db "SELECT * FROM Jobs"
-echo ""
+# Set up the SETI project - replace the key with your own here if you like
+boinccmd --project_attach http://setiathome.berkeley.edu 10351529_9b9c95b7b79ab3f58c2dcc7156b5d8ac
+
+# Stop the service and set it to only use 50% CPU in the config
+sudo service boinc-client stop
+sudo cp ./global_prefs_override.xml /var/lib/boinc-client/global_prefs_override.xml
+sudo service boinc-client start
 
 ## Success!!!
 print_good "Install complete."
-print_good "Database created and schema written to the table."
 
 echo ""
 
