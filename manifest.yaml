@@ -12,15 +12,15 @@ info:
     name: eSixteen.co
     url: https://www.esixteen.co/
   x-21-usage: 'Use the available API endpoints to run SETI and look for Aliens.'
-  x-21-quick-buy: "21 buy url http://10.244.79.96:9016/status"
+  x-21-quick-buy: "21 buy url http://10.244.113.158:10016/status"
   x-21-category: utilities
   x-21-github-profile-url: https://github.com/pooleja
   x-21-github-project-url: https://github.com/pooleja/AlienSearchE16
   x-21-keywords: [alien, SETI, BOINC, iot, CPU]
   x-21-total-price:
      min: 10
-     max: 1800
-host: 0.0.0.0:10016
+     max: 2000
+host: 10.244.113.158:10016
 schemes:
    - http
 basePath: /
