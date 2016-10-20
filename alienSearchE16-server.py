@@ -33,14 +33,6 @@ logger = logging.getLogger('werkzeug')
 alienSearch = AlienSearchE16()
 
 
-@app.route('/manifest')
-def manifest():
-    """Provide the app manifest to the 21 crawler."""
-    with open('./manifest.yaml', 'r') as f:
-        manifest = yaml.load(f)
-    return json.dumps(manifest)
-
-
 @app.route('/status')
 @payment.required(10)
 def status():
@@ -138,6 +130,6 @@ if __name__ == '__main__':
             setiCmd.start()
 
             print("Server running...")
-            app.run(host='0.0.0.0', port=10016)
+            app.run(host='::', port=10016)
 
     start()

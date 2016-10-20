@@ -8,11 +8,12 @@ info:
   description: 'Earn bitcoin by running SETI on the 21 marketplace.'
   termsOfService: https://opensource.org/licenses/MIT
   contact:
-    email: james@esixteen.com
+    email: james@esixteen.co
     name: eSixteen.co
-    url: https://www.esixteen.co/
+    url: https://www.esixteen.co/apps/aliensearche16
   x-21-usage: 'Use the available API endpoints to run SETI and look for Aliens.'
-  x-21-quick-buy: "21 buy url http://10.244.113.158:10016/status"
+  x-21-quick-buy: "21 buy http://[fcce:a977:eec7:c71c:1c43:0000:0000:0001]:10016/status"
+  x-21-app-image: https://cdn.filepicker.io/api/file/xpq5tK5nSTm5ZuH2B3BW
   x-21-category: utilities
   x-21-github-profile-url: https://github.com/pooleja
   x-21-github-project-url: https://github.com/pooleja/AlienSearchE16
@@ -20,11 +21,10 @@ info:
   x-21-total-price:
      min: 10
      max: 2000
-host: 10.244.113.158:10016
+host: '[fcce:a977:eec7:c71c:1c43:0000:0000:0001]:10016'
 schemes:
    - http
 basePath: /
-x-21-manifest-path: /manifest
 
 # Available paths for the app
 paths:
